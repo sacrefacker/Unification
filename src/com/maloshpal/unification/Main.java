@@ -1,80 +1,116 @@
 package com.maloshpal.unification;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 public class Main {
 
+    /**
+     * @param args two strings of type "a, x, f(g(y))", "z, f(z), f(u)"
+     */
     public static void main(String[] args) {
-        String E1 = "a, x, f(g(y))";
-        String E2 = "z, f(z), f(u)";
+        List<Token> tokenSetE1 = Stream.of(args[0].split(", ")).map(TokenUtils::parse).collect(Collectors.toList());
+        List<Token> tokenSetE2 = Stream.of(args[1].split(", ")).map(TokenUtils::parse).collect(Collectors.toList());
+        List<Substitution> sigma = new ArrayList<>();
 
-        String[] elemsE1 = E1.split(",");
-        String[] elemsE2 = E2.split(",");
-
-        StringBuilder E1sigma = new StringBuilder();
-        StringBuilder sigma = new StringBuilder();
-
-        if (elemsE1.length != elemsE2.length) {
+        // TODO consider adding more fail-safe
+        if (tokenSetE1.isEmpty() || tokenSetE2.isEmpty()) {
+            // TODO elaborate error message: Incorrect input
             System.out.println("false");
             return;
         }
 
-        for (int i = 0; i < elemsE1.length; i++) {
-            String currentE1 = elemsE1[i];
-            String currentE2 = elemsE2[i];
-
-            if (!currentE1.equals(elemsE2[i])) {
-                if (currentE1.contains("(")) { // same as default
-                    if (sigma.length() != 0) sigma.append(",");
-                    sigma.append(currentE1).append("//").append(currentE2);
-                    i = substitution(elemsE1, elemsE2, currentE1, currentE2);
-                }
-                else if (elemsE2[i].contains("(")) {
-                    if (sigma.length() != 0) sigma.append(",");
-                    sigma.append(currentE2).append("//").append(currentE1);
-                    i = substitution(elemsE1, elemsE2, currentE2, currentE1);
-                }
-                else {
-                    if (sigma.length() != 0) sigma.append(",");
-                    sigma.append(currentE1).append("//").append(currentE2);
-                    i = substitution(elemsE1, elemsE2, currentE1, currentE2);
-                }
-            }
+        if (tokenSetE1.size() != tokenSetE2.size()) {
+            // TODO elaborate error message: Es are of different sizes
+            System.out.println("false");
+            return;
         }
 
-        boolean check = true;
-        for (int i = 0; check && i < elemsE1.length; i++) {
-            if (elemsE1[i].equals(elemsE2[i])) {
-                if (E1sigma.length() != 0) E1sigma.append(",");
-                E1sigma.append(elemsE1[i]);
+        for (int i = 0; i < tokenSetE1.size(); i++) {
+            Token currentE1token = tokenSetE1.get(i);
+            Token currentE2token = tokenSetE2.get(i);
+            // either equal variables or equal functions:
+            if (currentE1token.isEqualTo(currentE2token)) {
+                // skip changes in this iteration
+                continue;
+            }
+
+            // different functions:
+            if (currentE1token.isFunction() && currentE2token.isFunction()) {
+                // TODO elaborate error message: both tokens are functions
+                System.out.println("false");
+                return;
+            }
+
+            // one is a function and the other is a variable because underlying variable is the same
+            if (currentE1token.getUnderlyingVariable().equals(currentE2token.getUnderlyingVariable())) {
+                // TODO elaborate error message: one of the tokens is a function depending on the other token variable
+                System.out.println("false");
+                return;
+            }
+
+            if (isSubbed(currentE1token, sigma) || isSubbed(currentE2token, sigma)) {
+                // TODO elaborate error message: the variable that needs substitution is already subbed in sigma
+                System.out.println("false");
+                return;
+            }
+
+            Substitution substitution;
+            if (currentE1token.isFunction()) {
+                substitution = new Substitution(currentE2token, currentE1token);
+            }
+            else if (currentE2token.isFunction()) {
+                substitution = new Substitution(currentE1token, currentE2token);
             }
             else {
-                check = false;
+                substitution = new Substitution(currentE2token, currentE1token);
             }
+            subst(tokenSetE1, substitution);
+            subst(tokenSetE2, substitution);
+            sigma.add(substitution);
         }
-        if (!check) {
-            System.out.println("false");
-        }
-        else {
-            System.out.println("result: (" + E1sigma + ")");
+
+//        boolean check = true;
+//        for (int i = 0; check && i < elemsE1.length; i++) {
+//            if (elemsE1[i].equals(elemsE2[i])) {
+//                E1sigma.append(elemsE1[i]);
+//            }
+//            else {
+//                check = false;
+//            }
+//        }
+//        if (!check) {
+//            System.out.println("false");
+//        }
+//        else {
+            System.out.println("result: (" + tokenSetE1 + ")");
             System.out.println("sigma: {" + sigma + "}");
-        }
+//        }
     }
 
-    private static int substitution(String[] elemsE1, String[] elemsE2, String t, String v) {
-        int k = -1;
-        for (int j = 0; j < elemsE1.length; j++) {
-            if (elemsE1[j].contains(v)) {
-                elemsE1[j] = elemsE1[j].replace(v, t);
-                if (k == -1) {
-                    k = j;
-                }
+    private static boolean isSubbed(Token token, List<Substitution> sigma) {
+        if (token.isFunction()) {
+            return false;
+        }
+
+        for (Substitution substitution : sigma) {
+            if (token.isEqualTo(substitution.getV())) {
+                return true;
             }
-            if (elemsE2[j].contains(v)) {
-                elemsE2[j] = elemsE2[j].replace(v, t);
-                if (k == -1) {
-                    k = j;
+        }
+
+        return false;
+    }
+
+    private static void subst(List<Token> tokenList, Substitution substitution) {
+        for (Token token : tokenList) {
+            for (Token subToken = token; subToken != null; subToken = subToken.getChild()) {
+                if (subToken.isEqualTo(substitution.getV())) {
+                    subToken.substitute(substitution.getT());
                 }
             }
         }
-        return k;
     }
 }
