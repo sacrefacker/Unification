@@ -8,15 +8,14 @@ import java.util.stream.Stream;
 public class Main {
 
     /**
-     * @param args two strings representing sets of tokens, for example "a, x, f(g(y))", "z, f(z), f(u)"
+     * @param args two strings representing sets of tokens (no spaces), for example "a,x,f(g(a))", "z,f(z),y"
      */
     public static void main(String[] args) {
-        List<Token> tokenSetE1 = Stream.of(args[0].split(", ")).map(TokenUtils::parse).collect(Collectors.toList());
-        List<Token> tokenSetE2 = Stream.of(args[1].split(", ")).map(TokenUtils::parse).collect(Collectors.toList());
+        List<Token> tokenSetE1 = Stream.of(args[0].split(",")).map(TokenUtils::parse).collect(Collectors.toList());
+        List<Token> tokenSetE2 = Stream.of(args[1].split(",")).map(TokenUtils::parse).collect(Collectors.toList());
         List<Substitution> sigma = new ArrayList<>();
 
-        // add more fail-safe if needed
-        if (tokenSetE1.isEmpty() || tokenSetE2.isEmpty()) {
+        if (tokenSetE1.isEmpty() || tokenSetE2.isEmpty() || tokenSetE1.contains(null) || tokenSetE2.contains(null)) {
             System.out.println("incorrect input");
             System.out.println("false");
             return;

@@ -14,17 +14,25 @@ public class Token {
 
     public Token(final @NotNull Token token) {
         mName = token.getName();
-        mChild = new Token(token.getChild());
+        mChild = defensiveChild(token.getChild());
     }
 
     public Token(final @NotNull String name, final @Nullable Token child) {
         mName = name;
-        mChild = new Token(child);
+        mChild = defensiveChild(child);
     }
 
     public void substitute(final @Nullable Token substitutionToken) {
         mName = substitutionToken.getName();
-        mChild = new Token(substitutionToken.getChild());
+        mChild = defensiveChild(substitutionToken.getChild());
+    }
+
+    public static @Nullable Token defensiveChild(final @Nullable Token child) {
+        if (child == null) {
+            return null;
+        }
+
+        return new Token(child);
     }
 
     // Getters
