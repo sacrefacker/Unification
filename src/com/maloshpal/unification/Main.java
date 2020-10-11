@@ -8,22 +8,22 @@ import java.util.stream.Stream;
 public class Main {
 
     /**
-     * @param args two strings of type "a, x, f(g(y))", "z, f(z), f(u)"
+     * @param args two strings representing sets of tokens, for example "a, x, f(g(y))", "z, f(z), f(u)"
      */
     public static void main(String[] args) {
         List<Token> tokenSetE1 = Stream.of(args[0].split(", ")).map(TokenUtils::parse).collect(Collectors.toList());
         List<Token> tokenSetE2 = Stream.of(args[1].split(", ")).map(TokenUtils::parse).collect(Collectors.toList());
         List<Substitution> sigma = new ArrayList<>();
 
-        // TODO consider adding more fail-safe
+        // add more fail-safe if needed
         if (tokenSetE1.isEmpty() || tokenSetE2.isEmpty()) {
-            // TODO elaborate error message: Incorrect input
+            System.out.println("incorrect input");
             System.out.println("false");
             return;
         }
 
         if (tokenSetE1.size() != tokenSetE2.size()) {
-            // TODO elaborate error message: Es are of different sizes
+            System.out.println("E sets are of different sizes");
             System.out.println("false");
             return;
         }
@@ -39,24 +39,25 @@ public class Main {
 
             // different functions:
             if (currentE1token.isFunction() && currentE2token.isFunction()) {
-                // TODO elaborate error message: both tokens are functions
+                System.out.println("both tokens are functions");
                 System.out.println("false");
                 return;
             }
 
             // one is a function and the other is a variable because underlying variable is the same
             if (currentE1token.getUnderlyingVariable().equals(currentE2token.getUnderlyingVariable())) {
-                // TODO elaborate error message: one of the tokens is a function depending on the other token variable
+                System.out.println("one of the tokens is a function depending on the other token variable");
                 System.out.println("false");
                 return;
             }
 
             if (isSubbed(currentE1token, sigma) || isSubbed(currentE2token, sigma)) {
-                // TODO elaborate error message: the variable that needs substitution is already subbed in sigma
+                System.out.println("the variable that needs substitution is already subbed in sigma");
                 System.out.println("false");
                 return;
             }
 
+            // subbing the variable to the function or if both are variables then from E2 to E1
             Substitution substitution;
             if (currentE1token.isFunction()) {
                 substitution = new Substitution(currentE2token, currentE1token);
@@ -72,22 +73,8 @@ public class Main {
             sigma.add(substitution);
         }
 
-//        boolean check = true;
-//        for (int i = 0; check && i < elemsE1.length; i++) {
-//            if (elemsE1[i].equals(elemsE2[i])) {
-//                E1sigma.append(elemsE1[i]);
-//            }
-//            else {
-//                check = false;
-//            }
-//        }
-//        if (!check) {
-//            System.out.println("false");
-//        }
-//        else {
-            System.out.println("result: (" + tokenSetE1 + ")");
-            System.out.println("sigma: {" + sigma + "}");
-//        }
+        System.out.println("result: " + tokenSetE1.toString());
+        System.out.println("sigma: " + sigma.toString());
     }
 
     private static boolean isSubbed(Token token, List<Substitution> sigma) {

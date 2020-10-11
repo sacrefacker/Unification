@@ -20,19 +20,4 @@ public class TokenUtils {
 
         return result;
     }
-
-//    public static @NotNull String getUnderlyingVariable(final @NotNull Token token) {
-//        StringBuilder stringRepresentation = new StringBuilder(getName());
-//        Token currentLevelToken = this;
-//        int n = 0;
-//        while (currentLevelToken.getChild() != null) {
-//            currentLevelToken = currentLevelToken.getChild();
-//            stringRepresentation.append("(").append(currentLevelToken.getName());
-//            n++;
-//        }
-//        for (int i = 0; i < n; i++) {
-//            stringRepresentation.append(")");
-//        }
-//        return stringRepresentation.toString();
-//    }
 }
