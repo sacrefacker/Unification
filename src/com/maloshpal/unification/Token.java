@@ -22,12 +22,7 @@ public class Token {
         mChild = defensiveChild(child);
     }
 
-    public void substitute(final @Nullable Token substitutionToken) {
-        mName = substitutionToken.getName();
-        mChild = defensiveChild(substitutionToken.getChild());
-    }
-
-    public static @Nullable Token defensiveChild(final @Nullable Token child) {
+    private static @Nullable Token defensiveChild(final @Nullable Token child) {
         if (child == null) {
             return null;
         }
@@ -47,6 +42,16 @@ public class Token {
 
     // Methods
 
+    // object mutation is considered bad practice, but in order to simplify substitutions we do it
+    public void substitute(final @Nullable Token substitutionToken) {
+        mName = substitutionToken.getName();
+        mChild = defensiveChild(substitutionToken.getChild());
+    }
+
+    public boolean isEqualTo(final @NotNull Token otherToken) {
+        return toString().equals(otherToken.toString());
+    }
+
     public @NotNull String toString() {
         if (getChild() == null) {
             return getName();
@@ -56,8 +61,8 @@ public class Token {
         }
     }
 
-    public boolean isEqualTo(final @NotNull Token otherToken) {
-        return toString().equals(otherToken.toString());
+    public boolean isFunction () {
+        return getChild() != null;
     }
 
     public @NotNull String getUnderlyingVariable() {
@@ -66,9 +71,5 @@ public class Token {
             currentLevelToken = currentLevelToken.getChild();
         }
         return currentLevelToken.getName();
-    }
-
-    public boolean isFunction () {
-        return getChild() != null;
     }
 }
